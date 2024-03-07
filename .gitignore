@@ -1,0 +1,55 @@
+# Binarios compilados
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.bin
+*.o
+*.a
+
+# Archivos de log
+*.log
+
+# Archivos generados durante la ejecución
+*.pem
+*.key
+
+# Directorios
+/tmp
+/vendor/
+
+# Archivos de configuración específicos del entorno
+.env
+.secret
+
+# Carpeta que almacena caché del compilador de Go
+$GOPATH/pkg/
+
+# Carpeta que almacena binarios compilados
+/bin/
+/pkg/
+
+# swagger
+/docs/
+
+# IDEs y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime
+.project
+.DS_Store
+
+# Sistema Operativo
+Thumbs.db
+.DS_Store
+
+# Otros archivos y directorios comunes a ignorar
+*.out
+*.tmp
+.air.toml
+commands
+/tmp/
+go.sum
