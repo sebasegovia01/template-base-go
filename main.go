@@ -50,13 +50,9 @@ func main() {
 	var localEnv string
 	if len(args) > 0 {
 		localEnv = os.Args[1:][0] // just 1 arg is received
-
-		// only dev, prod and qa allowed
-		if localEnv != "dev" && localEnv != "prod" && localEnv != "qa" {
-			localEnv = ""
-		}
 	}
 
+	// parse from .env file if exists
 	if err := utils.ParseEnvironmentFile(localEnv); err != nil {
 		log.Fatal(err)
 	}
@@ -80,11 +76,22 @@ func main() {
 	port := fmt.Sprintf(":%v", utilsContainer.Environment.GetEnvVar("PORT"))
 
 	if port == ":" {
-		port = ":5000"
+		port = ":8080"
 	}
-	servicesContainer.Logger.Info("Server url: http://localhost:3000")
 
-	servicesContainer.Logger.Info("Swagger url: http://localhost:3000/api-docs/index.html")
+	env := utilsContainer.Environment.GetEnvVar("ENV")
+
+	if env == "" {
+		env = "development"
+	}
+	servicesContainer.Logger.Info(fmt.Sprintf("Environment: %s", env))
+
+	serverURL := fmt.Sprintf("Server url: http://localhost%s", port)
+	servicesContainer.Logger.Info(serverURL)
+
+	swaggerURL := fmt.Sprintf("%s/api-docs/index.html", serverURL)
+	servicesContainer.Logger.Info(fmt.Sprintf("Swagger url: %s", swaggerURL))
 
 	log.Fatal(http.ListenAndServe(port, gorillaHandlers.CORS(headers, methods, origins)(api.Router())))
+
 }

@@ -19,37 +19,38 @@ func NewContainer(env IEnvironment) *Container {
 	}
 }
 
-// ParseEnvironmentFile reads .env file and cretes env variables
+// ParseEnvironmentFile checks if running in local environment and reads .env file if present
 func ParseEnvironmentFile(localEnv string) error {
-	// Definir la ruta del archivo .env relativa al directorio actual de ejecución
-	file := ".env"
+	// Check if running in a local environment (e.g., not in AWS Lambda)
+	if _, isLambda := os.LookupEnv("AWS_LAMBDA_FUNCTION_NAME"); !isLambda {
+		file := ".env"
+		if localEnv != "" {
+			file = fmt.Sprintf(".env%s", localEnv)
+		}
 
-	if localEnv != "" {
-		file = fmt.Sprintf(".env%s", localEnv)
+		handler, err := os.Open(file)
+		if err != nil {
+			log.Printf("Failed to open file path, %v", err)
+			return nil // Don't fail in Lambda if .env file is not found
+		}
+		defer handler.Close()
+
+		return ReadFileAndSetEnv(handler)
 	}
-
-	// Abre el archivo .env usando una ruta relativa
-	handler, err := os.Open(file)
-	if err != nil {
-		log.Fatalf("Failed to open file path, %v", err)
-	}
-	defer handler.Close()
-
-	// Leer y establecer las variables de entorno
-	return ReadFileAndSetEnv(handler)
+	return nil
 }
 
-// ReadFileAndSetEnv takes a reader and will set its keys as env variables
+// ReadFileAndSetEnv takes a reader and sets its keys as environment variables
 func ReadFileAndSetEnv(handle io.Reader) error {
 	scanner := bufio.NewScanner(handle)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if line == "" || strings.HasPrefix(line, "#") { // Ignora líneas vacías o comentadas
+		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
 		parts := strings.SplitN(line, "=", 2)
 		if len(parts) != 2 {
-			log.Printf("ignoring malformed line in env file: %s", line)
+			log.Printf("Ignoring malformed line in env file: %s", line)
 			continue
 		}
 		key := parts[0]
@@ -57,7 +58,7 @@ func ReadFileAndSetEnv(handle io.Reader) error {
 		os.Setenv(key, value)
 	}
 	if err := scanner.Err(); err != nil {
-		log.Printf("error reading env file: %v", err)
+		log.Printf("Error reading env file: %v", err)
 		return err
 	}
 	return nil

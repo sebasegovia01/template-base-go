@@ -26,7 +26,7 @@ func NewApi(handlers *handlers.Container, logger *utils.Logger) Routes {
 	return a
 }
 
-// call router
+// return router
 func (a *api) Router() http.Handler {
 	return a.router
 }
