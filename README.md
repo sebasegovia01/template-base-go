@@ -48,3 +48,24 @@ Para compilar tu proyecto:
 Para ejecutar las pruebas de tu proyecto:
 
 `go test ./...`
+
+### Levantar Lambda localmente. Se requiere tener instalado sam:
+
+https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html
+
+Para Empezar, se debe compilar el ambiente:
+`go build -o main`
+
+Luego, compilar con sam:
+
+**Importante:** se requiere tener docker levantado para todo proceso de sam
+
+`sam build`
+
+Y para ejecutar, finalmente con:
+
+`sam local start-api`
+
+_____
+
+**Importante:** Si añades nuevas rutas debes definirlas en el archivo template.yaml

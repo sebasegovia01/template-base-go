@@ -1,0 +1,8 @@
+/tmp
+.env
+/change-base-name.sh
+main
+README.md
+commands
+/docs
+/.aws-sam

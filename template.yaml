@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Globals:
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+      AllowOrigin: "'*'"
+
+Resources:
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+      DefinitionBody:
+        swagger: "2.0"
+        info:
+          title:
+            Ref: AWS::StackName
+        paths:
+          /:
+            get:
+              responses: {}
+          /service-name/v1/example:
+            get:
+              responses: {}
+          /api-docs:
+            get:
+              responses: {}
+
+  MyLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: main # Asegúrate de que esto coincida con el punto de entrada de tu aplicación Go.
+      Runtime: go1.x
+      Events:
+        ExampleEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: MyApi
+            Path: /service-name/v1/example
+            Method: get
+        SwaggerEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: MyApi
+            Path: /api-docs
+            Method: get

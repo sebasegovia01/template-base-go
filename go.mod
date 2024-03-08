@@ -7,7 +7,10 @@ require (
 	github.com/swaggo/http-swagger v1.3.4
 )
 
-require github.com/felixge/httpsnoop v1.0.3 // indirect
+require (
+	github.com/aws/aws-lambda-go v1.46.0 // indirect
+	github.com/felixge/httpsnoop v1.0.3 // indirect
+)
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect

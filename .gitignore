@@ -53,3 +53,4 @@ Thumbs.db
 commands
 /tmp/
 go.sum
+/.aws-sam
