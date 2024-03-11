@@ -68,4 +68,4 @@ Y para ejecutar, finalmente con:
 
 _____
 
-**Importante:** Si añades nuevas rutas debes definirlas en el archivo template.yaml
+**Importante:** Si añades nuevas rutas debes definirlas en el archivo template.yaml para hacer pruebas con sam.
