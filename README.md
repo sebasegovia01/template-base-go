@@ -1,4 +1,4 @@
-# Template Base Go
+# Template Base Go - Aws lambda
 
 Este proyecto es una plantilla base para aplicaciones en Go, diseñada para facilitar el desarrollo, pruebas y despliegue de aplicaciones robustas y escalables.
 
