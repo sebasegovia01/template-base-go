@@ -22,6 +22,7 @@
 # Archivos de configuración específicos del entorno
 .env
 .secret
+env.json
 
 # Carpeta que almacena caché del compilador de Go
 $GOPATH/pkg/
@@ -29,9 +30,6 @@ $GOPATH/pkg/
 # Carpeta que almacena binarios compilados
 /bin/
 /pkg/
-
-# swagger
-/docs/
 
 # IDEs y editores
 .vscode/

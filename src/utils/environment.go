@@ -9,6 +9,7 @@ type IEnvironment interface {
 	GetEnvVar(varName string) string
 	MustGetEnvVar(varName string) string
 	LookupEnv(varName string) (string, bool)
+	IsLambda() bool
 }
 
 type Environment struct {
@@ -37,4 +38,10 @@ func (env *Environment) GetEnvVar(varName string) string {
 // LookupEnv tries to get an env var. It returns a true or false if it found it
 func (env *Environment) LookupEnv(varName string) (string, bool) {
 	return os.LookupEnv(varName)
+}
+
+func (env *Environment) IsLambda() bool {
+	_, isLambda := env.LookupEnv("AWS_LAMBDA_RUNTIME_API")
+
+	return isLambda
 }

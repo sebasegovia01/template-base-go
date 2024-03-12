@@ -1,18 +1,24 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"template-base-go/src/core"
 	"template-base-go/src/handlers"
 	"template-base-go/src/repositories"
 	"template-base-go/src/services"
 	"template-base-go/src/utils"
 
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 	gorillaHandlers "github.com/gorilla/handlers"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+var handlersContainer *handlers.Container
 
 func loadEnvs() {
 	if err := utils.ParseEnvironmentFile(""); err != nil {
@@ -24,13 +30,29 @@ func main() {
 	loadEnvs()
 
 	utilsContainer := utils.NewContainer(utils.NewEnvironment())
+
+	isLambda := utilsContainer.Environment.IsLambda()
+
+	fmt.Println("IsLambda?: ", isLambda)
+
 	servicesContainer := services.NewContainer(&utils.Logger{}, &utils.Environment{}, &services.ExampleService{})
 	dbConnection := getDbConnection(utilsContainer)
 	repositoriesContainer := repositories.NewContainer(repositories.NewExampleRepository(dbConnection))
-	handlersContainer := handlers.NewContainer(handlers.NewExampleHandler(servicesContainer.Logger, servicesContainer.ExampleServices, repositoriesContainer.ExampleRepository))
+	handlersContainer = handlers.NewContainer(handlers.NewExampleHandler(servicesContainer.Logger, servicesContainer.ExampleServices, repositoriesContainer.ExampleRepository))
+
+	if isLambda {
+		lambda.Start(LambdaHandler)
+	} else {
+		httpServer(handlersContainer, utilsContainer)
+	}
+
+	logServerInfo(utilsContainer, servicesContainer)
+
+}
+
+func httpServer(handlersContainer *handlers.Container, utilsContainer *utils.Container) {
 
 	api := core.NewApi(handlersContainer, &utils.Logger{})
-	logServerInfo(utilsContainer, servicesContainer)
 
 	port := getServerPort(utilsContainer)
 	log.Fatal(http.ListenAndServe(port, setupCORS(api.Router())))
@@ -69,4 +91,24 @@ func getDbConnection(utilsContainer *utils.Container) *mongo.Database {
 	)
 
 	return repositories.Connect(uri, db_name)
+}
+
+func LambdaHandler(ctx context.Context, request events.LambdaFunctionURLRequest) (events.APIGatewayProxyResponse, error) {
+	api := core.NewApi(handlersContainer, &utils.Logger{})
+
+	req, err := utils.LambdaEventToHttpRequest(request)
+	if err != nil {
+		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError, Body: err.Error()}, nil
+	}
+
+	recorder := httptest.NewRecorder()
+	api.Router().ServeHTTP(recorder, req)
+
+	response := events.APIGatewayProxyResponse{
+		StatusCode: recorder.Code,
+		Body:       recorder.Body.String(),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+	}
+
+	return response, nil
 }
