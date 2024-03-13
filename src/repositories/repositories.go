@@ -1,13 +1,13 @@
 package repositories
 
 type Container struct {
-	ExampleRepository IExampleRepository
+	OTPRepository IOTPRepository
 }
 
 func NewContainer(
-	exampleRepository IExampleRepository,
+	OTPRepository IOTPRepository,
 ) *Container {
 	return &Container{
-		ExampleRepository: exampleRepository,
+		OTPRepository: OTPRepository,
 	}
 }
