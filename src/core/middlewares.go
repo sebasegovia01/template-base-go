@@ -2,7 +2,7 @@ package core
 
 import (
 	"net/http"
-	"template-base-go/src/utils"
+	"put-otp-go/src/utils"
 )
 
 func LogRequest(log utils.ILogger) func(http.Handler) http.Handler {

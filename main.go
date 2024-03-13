@@ -6,11 +6,10 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"template-base-go/src/core"
-	"template-base-go/src/handlers"
-	"template-base-go/src/repositories"
-	"template-base-go/src/services"
-	"template-base-go/src/utils"
+	"put-otp-go/src/core"
+	"put-otp-go/src/handlers"
+	"put-otp-go/src/repositories"
+	"put-otp-go/src/utils"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -20,21 +19,19 @@ import (
 
 var utilsContainer *utils.Container
 var handlersContainer *handlers.Container
-var servicesContainer *services.Container
 
 func main() {
 	loadEnvs()
 
-	utilsContainer = utils.NewContainer(utils.NewEnvironment())
+	utilsContainer = utils.NewContainer(&utils.Logger{}, utils.NewEnvironment())
 
 	isLambda := utilsContainer.Environment.IsLambda()
 
 	fmt.Println("IsLambda?: ", isLambda)
 
-	servicesContainer = services.NewContainer(&utils.Logger{}, &utils.Environment{}, &services.ExampleService{})
 	dbConnection := getDbConnection()
-	repositoriesContainer := repositories.NewContainer(repositories.NewExampleRepository(dbConnection))
-	handlersContainer = handlers.NewContainer(handlers.NewExampleHandler(servicesContainer.Logger, servicesContainer.ExampleServices, repositoriesContainer.ExampleRepository))
+	repositoriesContainer := repositories.NewContainer(repositories.NewOTPRepository(dbConnection))
+	handlersContainer = handlers.NewContainer(handlers.NewOtpHandler(utilsContainer.Logger, repositoriesContainer.OTPRepository))
 
 	if isLambda {
 		lambda.Start(LambdaHandler)
@@ -94,10 +91,10 @@ func logServerInfo() {
 	port := getServerPort()
 	serverURL := fmt.Sprintf("Server url: http://localhost%s", port)
 	swaggerURL := fmt.Sprintf("%s/api-docs/index.html", serverURL)
-	servicesContainer.Logger.Info("Initializing server")
-	servicesContainer.Logger.Info(fmt.Sprintf("Environment: %s", utilsContainer.Environment.GetEnvVar("ENV")))
-	servicesContainer.Logger.Info(serverURL)
-	servicesContainer.Logger.Info(fmt.Sprintf("Swagger url: %s", swaggerURL))
+	utilsContainer.Logger.Info("Initializing server")
+	utilsContainer.Logger.Info(fmt.Sprintf("Environment: %s", utilsContainer.Environment.GetEnvVar("ENV")))
+	utilsContainer.Logger.Info(serverURL)
+	utilsContainer.Logger.Info(fmt.Sprintf("Swagger url: %s", swaggerURL))
 }
 
 func getServerPort() string {

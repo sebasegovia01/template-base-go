@@ -1,4 +1,4 @@
-module template-base-go
+module put-otp-go
 
 go 1.22
 

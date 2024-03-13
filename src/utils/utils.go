@@ -15,11 +15,13 @@ import (
 
 type Container struct {
 	Environment IEnvironment
+	Logger      ILogger
 }
 
-func NewContainer(env IEnvironment) *Container {
+func NewContainer(logger ILogger, env IEnvironment) *Container {
 	return &Container{
 		Environment: env,
+		Logger:      logger,
 	}
 }
 

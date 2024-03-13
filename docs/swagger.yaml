@@ -1,4 +1,67 @@
+definitions:
+  models.Otp:
+    properties:
+      creationDate:
+        type: string
+      id:
+        type: string
+      modificationDate:
+        type: string
+      otp:
+        type: string
+      retryAttempts:
+        type: integer
+      status:
+        type: string
+      userID:
+        type: string
+      userPhoneNumber:
+        type: string
+      validAttempts:
+        type: integer
+    required:
+    - status
+    - userID
+    - userPhoneNumber
+    type: object
+  models.UpdateResponse:
+    properties:
+      MatchedCount:
+        type: integer
+      ModifiedCount:
+        type: integer
+      UpsertedCount:
+        type: integer
+      UpsertedID: {}
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /service-otp/v1/put/{id}:
+    put:
+      consumes:
+      - application/json
+      description: update otp by id and body data
+      parameters:
+      - description: OTP ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: OTP object
+        in: body
+        name: otp
+        required: true
+        schema:
+          $ref: '#/definitions/models.Otp'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UpdateResponse'
+      summary: Update an OTP
+      tags:
+      - Update OTP
 swagger: "2.0"

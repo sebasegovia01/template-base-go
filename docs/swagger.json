@@ -3,5 +3,101 @@
     "info": {
         "contact": {}
     },
-    "paths": {}
+    "paths": {
+        "/service-otp/v1/put/{id}": {
+            "put": {
+                "description": "update otp by id and body data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Update OTP"
+                ],
+                "summary": "Update an OTP",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "OTP ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "OTP object",
+                        "name": "otp",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Otp"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Otp": {
+            "type": "object",
+            "required": [
+                "status",
+                "userID",
+                "userPhoneNumber"
+            ],
+            "properties": {
+                "creationDate": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "modificationDate": {
+                    "type": "string"
+                },
+                "otp": {
+                    "type": "string"
+                },
+                "retryAttempts": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                },
+                "userPhoneNumber": {
+                    "type": "string"
+                },
+                "validAttempts": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.UpdateResponse": {
+            "type": "object",
+            "properties": {
+                "MatchedCount": {
+                    "type": "integer"
+                },
+                "ModifiedCount": {
+                    "type": "integer"
+                },
+                "UpsertedCount": {
+                    "type": "integer"
+                },
+                "UpsertedID": {}
+            }
+        }
+    }
 }
