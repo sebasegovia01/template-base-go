@@ -29,6 +29,8 @@ Para iniciar el servidor de desarrollo:
 ### Inicializar Configuración para Recarga Automática
 Para preparar tu proyecto para utilizar air y beneficiarte de la recarga automática durante el desarrollo, primero ejecuta:
 
+https://github.com/cosmtrek/air
+
 `air init`
 
 Luego, para iniciar el servidor con recarga automática:
