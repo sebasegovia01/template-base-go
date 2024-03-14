@@ -2,20 +2,20 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"template-base-go/src/core"
 	"template-base-go/src/handlers"
-	"template-base-go/src/repositories"
+	"template-base-go/src/models"
 	"template-base-go/src/services"
 	"template-base-go/src/utils"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	gorillaHandlers "github.com/gorilla/handlers"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var utilsContainer *utils.Container
@@ -31,10 +31,8 @@ func main() {
 
 	fmt.Println("IsLambda?: ", isLambda)
 
-	servicesContainer = services.NewContainer(&utils.Logger{}, &utils.Environment{}, &services.ExampleService{})
-	dbConnection := getDbConnection()
-	repositoriesContainer := repositories.NewContainer(repositories.NewExampleRepository(dbConnection))
-	handlersContainer = handlers.NewContainer(handlers.NewExampleHandler(servicesContainer.Logger, servicesContainer.ExampleServices, repositoriesContainer.ExampleRepository))
+	servicesContainer = services.NewContainer(&utils.Logger{}, &utils.Environment{}, &services.OtpService{})
+	handlersContainer = handlers.NewContainer(handlers.NewOtpHandler(servicesContainer.Logger, servicesContainer.OtpService))
 
 	if isLambda {
 		lambda.Start(LambdaHandler)
@@ -61,11 +59,64 @@ func httpServer() {
 	log.Fatal(http.ListenAndServe(port, setupCORS(api.Router())))
 }
 
-func LambdaHandler(ctx context.Context, request events.LambdaFunctionURLRequest) (events.LambdaFunctionURLResponse, error) {
+func LambdaHandler(ctx context.Context, event map[string]interface{}) (interface{}, error) {
+	// Imprime el evento recibido para depuración
+	eventJSON, _ := json.Marshal(event)
+	fmt.Printf("Received event: %s\n", string(eventJSON))
+
+	if _, ok := event["requestContext"]; ok {
+		fmt.Println("Identified as Lambda Function URL Request")
+
+		lambdaRequest, err := utils.ConvertToLambdaFunctionURLRequest(event)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert event to LambdaFunctionURLRequest: %v", err)
+		}
+		return handleLambdaFunctionURLRequest(lambdaRequest)
+	}
+
+	// Step Function Event
+	fmt.Println("Handling as Step Function Event or other JSON event")
+
+	rawMessage, err := utils.ConvertToJSONRawMessage(event)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert event to JSONRawMessage: %v", err)
+	}
+
+	return handleJSONRawMessageEvent(rawMessage)
+}
+
+func handleJSONRawMessageEvent(rawMessage json.RawMessage) (interface{}, error) {
+	// Lógica para manejar el evento
+	var payload models.SFPayload
+	if err := json.Unmarshal(rawMessage, &payload); err != nil {
+		fmt.Printf("Error unmarshaling JSON Raw Message Event: %v\n", err)
+		return nil, err
+	}
+
+	fmt.Printf("Handling JSON Raw Message Payload: %+v\n", payload)
+
+	// Crear una solicitud HTTP falsa para simular la llamada a la API
+	req, err := http.NewRequest(http.MethodGet, payload.Path, nil)
+	if err != nil {
+		fmt.Printf("Error creating fake HTTP request: %v\n", err)
+		return nil, err
+	}
+
+	// Inicializar la API y manejar la solicitud HTTP falsa
 	api := core.NewApi(handlersContainer, &utils.Logger{})
+	recorder := httptest.NewRecorder()
+	api.Router().ServeHTTP(recorder, req)
 
-	logServerInfo()
+	// Devolver la respuesta HTTP como una respuesta de Step Function
+	return map[string]interface{}{
+		"statusCode": recorder.Code,
+		"body":       recorder.Body.String(),
+		"headers":    map[string]string{"Content-Type": "application/json"},
+	}, nil
+}
 
+func handleLambdaFunctionURLRequest(request events.LambdaFunctionURLRequest) (events.LambdaFunctionURLResponse, error) {
+	api := core.NewApi(handlersContainer, &utils.Logger{})
 	req, err := utils.LambdaEventToHttpRequest(request)
 	if err != nil {
 		return events.LambdaFunctionURLResponse{StatusCode: http.StatusInternalServerError, Body: err.Error()}, nil
@@ -74,13 +125,11 @@ func LambdaHandler(ctx context.Context, request events.LambdaFunctionURLRequest)
 	recorder := httptest.NewRecorder()
 	api.Router().ServeHTTP(recorder, req)
 
-	response := events.LambdaFunctionURLResponse{
+	return events.LambdaFunctionURLResponse{
 		StatusCode: recorder.Code,
 		Body:       recorder.Body.String(),
 		Headers:    map[string]string{"Content-Type": "application/json"},
-	}
-
-	return response, nil
+	}, nil
 }
 
 func setupCORS(handler http.Handler) http.Handler {
@@ -106,19 +155,4 @@ func getServerPort() string {
 		port = ":8080"
 	}
 	return port
-}
-
-func getDbConnection() *mongo.Database {
-
-	var (
-		uri     = utilsContainer.Environment.GetEnvVar("MONGO_URI")
-		db_name = utilsContainer.Environment.GetEnvVar("DB_NAME")
-	)
-
-	db, err := repositories.Connect(uri, db_name)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return db
 }

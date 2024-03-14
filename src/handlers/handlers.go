@@ -2,12 +2,12 @@ package handlers
 
 type Container struct {
 	//handlers *definitions here
-	*ExampleHandler
+	*OtpHandler
 }
 
-func NewContainer(exampleHandler *ExampleHandler) *Container {
+func NewContainer(otpHandler *OtpHandler) *Container {
 	return &Container{
 		//handlers instances here
-		ExampleHandler: exampleHandler,
+		OtpHandler: otpHandler,
 	}
 }

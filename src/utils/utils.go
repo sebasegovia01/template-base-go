@@ -2,15 +2,11 @@ package utils
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io"
 	"log"
-	"net/http"
 	"os"
 	"strings"
-
-	"github.com/aws/aws-lambda-go/events"
 )
 
 type Container struct {
@@ -66,23 +62,4 @@ func ReadFileAndSetEnv(handle io.Reader) error {
 		return err
 	}
 	return nil
-}
-
-// LambdaEventToHttpRequest convierte un evento en una solicitud HTTP
-func LambdaEventToHttpRequest(req events.LambdaFunctionURLRequest) (*http.Request, error) {
-	// Convertir el cuerpo del evento Lambda en un io.Reader
-	reader := bytes.NewBufferString(req.Body)
-
-	// Crear la solicitud HTTP
-	httpReq, err := http.NewRequest(strings.ToUpper(req.RequestContext.HTTP.Method), req.RequestContext.HTTP.Path, reader)
-	if err != nil {
-		return nil, err
-	}
-
-	// Copiar los encabezados al HTTP Request
-	for key, value := range req.Headers {
-		httpReq.Header.Add(key, value)
-	}
-
-	return httpReq, nil
 }

@@ -1,4 +1,25 @@
+definitions:
+  models.Otp:
+    properties:
+      otp:
+        type: string
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /otp/generate:
+    get:
+      consumes:
+      - application/json
+      description: Generates a random OTP of length 6
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Otp'
+      summary: Generate OTP
+      tags:
+      - OTP
 swagger: "2.0"

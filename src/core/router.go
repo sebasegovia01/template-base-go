@@ -58,14 +58,11 @@ func (a *api) init(handlers *handlers.Container, logger *utils.Logger) {
 	//Swagger
 	router.PathPrefix("/api-docs").Handler(httpSwagger.WrapHandler)
 
-	subrouter := router.PathPrefix("/service-name/v1").Subrouter()
+	subrouter := router.PathPrefix("/service-otp/v1").Subrouter()
 
 	subrouter.Use(LogRequest(logger))
 
-	subrouter.Handle("/example", http.HandlerFunc(handlers.ExampleHandler.Do)).Methods(http.MethodGet)
-	subrouter.Handle("/get/{id}", http.HandlerFunc(handlers.ExampleHandler.Get)).Methods(http.MethodGet)
-	subrouter.Handle("/post", http.HandlerFunc(handlers.ExampleHandler.Create)).Methods(http.MethodPost)
-	subrouter.Handle("/put/{id}", http.HandlerFunc(handlers.ExampleHandler.Update)).Methods(http.MethodPut)
+	subrouter.Handle("/generate", http.HandlerFunc(handlers.OtpHandler.Generate)).Methods(http.MethodGet)
 
 	a.router = router
 }

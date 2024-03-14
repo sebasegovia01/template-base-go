@@ -5,19 +5,19 @@ import (
 )
 
 type Container struct {
-	Logger          utils.ILogger
-	Environment     utils.IEnvironment
-	ExampleServices IExampleService
+	Logger      utils.ILogger
+	Environment utils.IEnvironment
+	OtpService  IOtpService
 }
 
 func NewContainer(
 	logger utils.ILogger,
 	env utils.IEnvironment,
-	exampleService IExampleService,
+	otpService IOtpService,
 ) *Container {
 	return &Container{
 		logger,
 		env,
-		exampleService,
+		otpService,
 	}
 }
